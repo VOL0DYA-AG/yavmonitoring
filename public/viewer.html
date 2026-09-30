@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Поток</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="viewer-head">
+      <p class="eyebrow">Поток данных</p>
+      <h1 id="name">Загрузка…</h1>
+      <p class="lede" id="intro">Окно можно закрыть: публикация этого потока продолжится на сервере.</p>
+    </header>
+    <main class="stack">
+      <section class="card readout">
+        <div>
+          <p class="topic" id="topic"></p>
+          <p class="value" id="value">—</p>
+          <p class="muted gap-top" id="meta"></p>
+          <pre class="code" id="payload">ожидание значений</pre>
+        </div>
+        <span class="pill" id="live" data-state="wait"><i></i><span>ожидание</span></span>
+      </section>
+      <section class="card" aria-label="График">
+        <canvas id="chart"></canvas>
+      </section>
+      <section class="card" aria-label="Сообщения">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Время</th>
+                <th>Значение</th>
+                <th>Ушло в MQTT</th>
+                <th>Сообщение</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+      <p class="muted"><a href="/">К списку потоков</a></p>
+    </main>
+  </div>
+  <script src="/viewer.js" defer></script>
+</body>
+</html>

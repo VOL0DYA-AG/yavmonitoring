@@ -1,0 +1,25 @@
+[Unit]
+Description=Имитатор сигналов MQTT
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=yavmon
+Group=yavmon
+WorkingDirectory=/opt/yavmonitoring
+Environment=NODE_ENV=production
+Environment=HOST=0.0.0.0
+Environment=PORT=8080
+Environment=DATA_DIR=/var/lib/yavmonitoring
+ExecStart=/usr/bin/node /opt/yavmonitoring/src/server.js
+Restart=always
+RestartSec=3
+StartLimitIntervalSec=0
+TimeoutStopSec=20
+KillSignal=SIGTERM
+MemoryMax=512M
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
