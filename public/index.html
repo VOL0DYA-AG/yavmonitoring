@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Имитатор сигналов</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="masthead">
+      <div>
+        <p class="eyebrow">MQTT · датчики · счётчики</p>
+        <h1>Имитатор <span class="lime">сигналов</span></h1>
+        <p class="lede">Значения считаются на сервере и публикуются в MQTT, пока запущена служба. Окно браузера можно закрыть — потоки от этого не остановятся.</p>
+      </div>
+      <p class="uptime" id="uptime" aria-live="polite">процесс запускается</p>
+    </header>
+
+    <main class="stack">
+      <section class="card" aria-labelledby="broker-title">
+        <p class="eyebrow">Брокер</p>
+        <h2 id="broker-title">Подключение</h2>
+        <form id="broker-form" autocomplete="off">
+          <div class="fields">
+            <label class="field">
+              <span>Протокол</span>
+              <select name="protocol">
+                <option value="mqtt">mqtt</option>
+                <option value="mqtts">mqtts</option>
+                <option value="ws">ws</option>
+                <option value="wss">wss</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Хост</span>
+              <input name="host" value="127.0.0.1" required maxlength="255" spellcheck="false" autocomplete="off">
+            </label>
+            <label class="field">
+              <span>Порт</span>
+              <input name="port" type="number" value="1883" required min="1" max="65535" step="1" inputmode="numeric">
+            </label>
+            <label class="field" id="path-field" hidden>
+              <span>Путь</span>
+              <input name="path" value="/mqtt" maxlength="200" spellcheck="false">
+            </label>
+            <label class="field">
+              <span>Пользователь</span>
+              <input name="username" maxlength="200" autocomplete="off">
+            </label>
+            <label class="field">
+              <span>Пароль</span>
+              <span class="password-row">
+                <input name="password" type="password" maxlength="500" autocomplete="off">
+                <button type="button" class="btn btn-ghost" id="toggle-password">Показать</button>
+              </span>
+            </label>
+            <label class="field">
+              <span>Client ID</span>
+              <input name="clientId" maxlength="128" spellcheck="false" autocomplete="off" placeholder="пусто — задаст служба">
+            </label>
+            <label class="field" id="tls-field" hidden>
+              <span>Сертификат TLS</span>
+              <select name="rejectUnauthorized">
+                <option value="true" selected>проверять</option>
+                <option value="false">доверять самоподписанному</option>
+              </select>
+            </label>
+          </div>
+          <p class="hint gap-top">Пустой Client ID служба запомнит сама. Пароль хранится в файле состояния на этом сервере.</p>
+          <div class="form-bar">
+            <div class="status-line">
+              <span class="pill" id="broker-pill" data-state="disconnected"><i></i><span id="broker-pill-text">Нет соединения</span></span>
+              <span class="muted" id="broker-detail"></span>
+            </div>
+            <button type="submit" class="btn btn-primary" id="broker-submit">Подключить</button>
+          </div>
+          <p class="form-error" id="broker-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="add-title">
+        <p class="eyebrow">Новый поток</p>
+        <h2 id="add-title">Параметры генерации</h2>
+        <form id="add-form" autocomplete="off">
+          <div class="fields">
+            <label class="field">
+              <span>Имя</span>
+              <input name="name" required maxlength="80" placeholder="Температура цеха">
+            </label>
+            <label class="field">
+              <span>Тип сигнала</span>
+              <select name="signalType">
+                <option value="temperature">Температура</option>
+                <option value="pressure">Давление</option>
+                <option value="level">Уровень</option>
+                <option value="flow">Расход</option>
+                <option value="humidity">Влажность</option>
+                <option value="voltage">Напряжение</option>
+                <option value="current">Ток</option>
+                <option value="discrete">Дискретный</option>
+                <option value="counter">Счётчик</option>
+                <option value="custom">Произвольный</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Тип генерации</span>
+              <select name="generationType">
+                <option value="constant">Постоянное</option>
+                <option value="uniform">Равномерный случайный</option>
+                <option value="gaussian">Нормальный шум</option>
+                <option value="random_walk">Случайное блуждание</option>
+                <option value="sine" selected>Синусоида</option>
+                <option value="square">Прямоугольный</option>
+                <option value="sawtooth">Пила</option>
+                <option value="ramp">Линейный рост</option>
+                <option value="counter">Счётчик</option>
+              </select>
+            </label>
+            <p class="hint span-3" data-gen-help></p>
+            <p class="hint span-3" data-add-only>Смена типа сигнала подставляет типичный диапазон. Любое поле после этого можно поправить.</p>
+            <label class="field">
+              <span>Минимум</span>
+              <input name="min" type="number" required step="any" value="15">
+            </label>
+            <label class="field">
+              <span>Максимум</span>
+              <input name="max" type="number" required step="any" value="35">
+            </label>
+            <label class="field">
+              <span>Знаков после запятой</span>
+              <input name="decimals" type="number" required min="0" max="6" step="1" value="1" inputmode="numeric">
+            </label>
+            <label class="field">
+              <span>Период, с</span>
+              <input name="periodSec" type="number" required min="0.1" max="86400" step="0.1" value="1">
+            </label>
+            <label class="field">
+              <span>Единица</span>
+              <input name="unit" maxlength="16" value="°C">
+            </label>
+            <label class="field span-3">
+              <span>MQTT-топик</span>
+              <input name="topic" required maxlength="512" placeholder="plant/line1/temperature" spellcheck="false" autocomplete="off">
+            </label>
+            <label class="field">
+              <span>QoS</span>
+              <select name="qos">
+                <option value="0" selected>0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Формат</span>
+              <select name="payloadFormat">
+                <option value="json" selected>JSON</option>
+                <option value="value">только число</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Retain</span>
+              <select name="retain">
+                <option value="false" selected>нет</option>
+                <option value="true">да</option>
+              </select>
+            </label>
+            <label class="field" data-show="constant">
+              <span>Постоянное значение</span>
+              <input name="constantValue" type="number" step="any" value="25">
+            </label>
+            <label class="field" data-show="sine square sawtooth">
+              <span>Период волны, с</span>
+              <input name="wavePeriodSec" type="number" min="0.2" max="86400" step="0.1" value="600">
+            </label>
+            <label class="field" data-show="square">
+              <span>Скважность, %</span>
+              <input name="dutyPercent" type="number" min="1" max="99" step="1" value="50">
+            </label>
+            <label class="field" data-show="random_walk">
+              <span>Шаг, % диапазона</span>
+              <input name="stepPercent" type="number" min="0.1" max="100" step="0.1" value="2">
+            </label>
+            <label class="field" data-show="ramp">
+              <span>Длительность роста, с</span>
+              <input name="rampDurationSec" type="number" min="0.2" step="0.1" value="300">
+            </label>
+            <label class="field" data-show="ramp">
+              <span>После максимума</span>
+              <select name="rampMode">
+                <option value="repeat" selected>повторять</option>
+                <option value="hold">удержать</option>
+              </select>
+            </label>
+            <label class="field" data-show="counter">
+              <span>Старт</span>
+              <input name="counterStart" type="number" step="any" value="0">
+            </label>
+            <label class="field" data-show="counter">
+              <span>Шаг счётчика</span>
+              <input name="counterStep" type="number" step="any" value="1" min="0.000001">
+            </label>
+            <label class="field" data-show="counter">
+              <span>После максимума</span>
+              <select name="counterWrap">
+                <option value="false" selected>остановиться</option>
+                <option value="true">начать сначала</option>
+              </select>
+            </label>
+          </div>
+          <p class="hint gap-top">QoS 0 не копит очередь, если брокер не успевает. Для работы неделями это подходящий режим. Период не короче 0,1 с.</p>
+          <div class="form-bar">
+            <p class="form-error" data-error role="alert"></p>
+            <button type="submit" class="btn btn-primary" data-submit>Добавить поток</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="list-title">
+        <p class="eyebrow">Потоки</p>
+        <h2 id="list-title">Созданные потоки <span class="count" id="stream-count">0</span></h2>
+        <p class="muted" id="stream-empty">Потоков пока нет. Задайте параметры выше — публикация начнётся сразу после добавления.</p>
+        <div class="stream-list" id="stream-list"></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Визуальная система — Sentri из <a href="https://github.com/VoltAgent/awesome-design-md">Awesome DESIGN.md</a>. Шрифт Rubik распространяется по лицензии OFL.</p>
+    </footer>
+  </div>
+
+  <dialog id="edit-dialog">
+    <div class="dialog-head">
+      <h2>Параметры потока</h2>
+      <button type="button" class="btn btn-ghost" id="edit-cancel">Закрыть</button>
+    </div>
+    <div class="dialog-body"></div>
+  </dialog>
+
+  <dialog id="delete-dialog">
+    <h2>Удалить поток?</h2>
+    <p id="delete-text" class="lede"></p>
+    <div class="form-bar">
+      <button type="button" class="btn btn-ghost" id="delete-cancel">Отмена</button>
+      <button type="button" class="btn btn-primary" id="delete-ok">Удалить</button>
+    </div>
+  </dialog>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
