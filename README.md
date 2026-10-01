@@ -54,10 +54,13 @@ npm -v
 ```bash
 git clone https://github.com/VOL0DYA-AG/yavmonitoring.git
 cd yavmonitoring
+git checkout cursor/mqtt-signal-simulator-884d
 npm ci --omit=dev
 ```
 
-`npm ci` ставит ровно те версии, что в `package-lock.json`. Нужен доступ к registry.npmjs.org. Если у сервера нет интернета, выполните `npm ci --omit=dev` на машине с сетью и скопируйте каталог вместе с `node_modules`.
+Ветка `main` пока содержит только короткий README. Приложение и `package-lock.json` лежат в `cursor/mqtt-signal-simulator-884d`. Без этого файла `npm ci` завершается с `EUSAGE`. После вливания в `main` строку `git checkout` можно не выполнять: достаточно клона и `npm ci --omit=dev`.
+
+`npm ci` ставит ровно те версии, что в `package-lock.json`. Нужен доступ к registry.npmjs.org. Если у сервера нет интернета, выполните `npm ci --omit=dev` на машине с сетью и скопируйте каталог вместе с `node_modules`. Команды `node` и `npm` должны быть из одной установки Node.js 18+.
 
 ### 3. Брокер, если его ещё нет
 
